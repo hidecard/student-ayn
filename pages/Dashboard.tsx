@@ -32,9 +32,9 @@ const Dashboard: React.FC = () => {
 
   const chartData = useMemo(() => {
     return tests.map(t => ({
-      name: t.name,
-      total: t.total,
-      attendance: attendance.filter(a => a.name === t.name && a.attendance === 'Class').length * 20 
+      name: t.name || 'Unknown',
+      total: t.total || 0,
+      attendance: attendance.filter(a => a.name === t.name && a.attendance === 'Class').length * 20
     }));
   }, [tests, attendance]);
 
