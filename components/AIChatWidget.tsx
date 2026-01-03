@@ -58,10 +58,10 @@ const AIChatWidget: React.FC = () => {
       if (!chatRef.current) {
         chatRef.current = createAIChatSession({ students, tests, attendance });
       }
-      
-      const result = await chatRef.current.sendMessage({ message: userMessage });
-      const responseText = result.text || "တောင်းပန်ပါတယ်၊ အဖြေထုတ်ပေးလို့ မရဖြစ်နေပါတယ်။";
-      
+
+      const result = await chatRef.current.sendMessage(userMessage);
+      const responseText = result || "တောင်းပန်ပါတယ်၊ အဖြေထုတ်ပေးလို့ မရဖြစ်နေပါတယ်။";
+
       setMessages(prev => [...prev, { role: 'model', text: responseText }]);
     } catch (error) {
       console.error("Chat error:", error);

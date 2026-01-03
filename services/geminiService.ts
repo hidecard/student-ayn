@@ -1,8 +1,15 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
-import { Student, CodingTest, AttendanceDaily } from "../types";
+// Puter.js provides free access to Gemini models without API keys
+// Global puter object is available after including the script in index.html
+declare global {
+  interface Window {
+    puter: any;
+  }
+}
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const puter = window.puter;
+
+import { Student, CodingTest, AttendanceDaily } from "../types";
 
 /**
  * Generates a specific AI Intelligence Report for a single student.
@@ -14,12 +21,12 @@ export const generateStudentReport = async (
 ) => {
   const prompt = `
     Analyze the performance and behavior of the following student and provide a master-level pedagogical intelligence report in Myanmar language.
-    
+
     Student Name: ${student.student_name}
-    
+
     Coding Test History:
     ${JSON.stringify(tests)}
-    
+
     Attendance and Discipline History:
     ${JSON.stringify(attendance)}
 
@@ -39,30 +46,20 @@ export const generateStudentReport = async (
       "technicalDrills": ["Drill 1: Detailed instruction", "Drill 2: Detailed instruction", "Drill 3: Detailed instruction"],
       "expectedOutcome": "Final outcome description."
     }
+
+    IMPORTANT: Return ONLY valid JSON. No markdown formatting, no explanations, just the JSON object.
   `;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          problemsDetected: { type: Type.ARRAY, items: { type: Type.STRING } },
-          improvementIdeas: { type: Type.ARRAY, items: { type: Type.STRING } },
-          weeklyActionPlan: { type: Type.ARRAY, items: { type: Type.STRING } },
-          detailedPlan: { type: Type.STRING },
-          psychologicalProfile: { type: Type.STRING, description: "Mental and emotional profile in Myanmar language." },
-          technicalDrills: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Specific coding drills." },
-          expectedOutcome: { type: Type.STRING }
-        },
-        required: ["problemsDetected", "improvementIdeas", "weeklyActionPlan", "detailedPlan", "psychologicalProfile", "technicalDrills", "expectedOutcome"]
-      }
-    }
+  const response = await puter.ai.chat(prompt, {
+    model: 'gemini-3-flash-preview'
   });
 
-  return JSON.parse(response.text || "{}");
+  try {
+    return JSON.parse(response);
+  } catch (error) {
+    console.error("Failed to parse student report JSON:", error);
+    throw new Error("Invalid JSON response from AI");
+  }
 };
 
 /**
@@ -76,7 +73,7 @@ export const generateClassReport = async (
   const prompt = `
     Analyze the overall performance of the entire class.
     Provide a comprehensive analysis, teaching advice, and class-wide improvement ideas in Myanmar language.
-    
+
     Class Data:
     - Total Students: ${students.length}
     - Test Results: ${JSON.stringify(tests)}
@@ -101,63 +98,74 @@ export const generateClassReport = async (
       "summary": "Overall class summary",
       "classHealthScore": 85
     }
+
+    IMPORTANT: Return ONLY valid JSON. No markdown formatting, no explanations, just the JSON object.
   `;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          weakTopics: { type: Type.ARRAY, items: { type: Type.STRING } },
-          attendanceInsight: { type: Type.STRING },
-          teachingAdvice: { type: Type.ARRAY, items: { type: Type.STRING } },
-          improvementIdeas: { 
-            type: Type.ARRAY, 
-            items: { 
-              type: Type.OBJECT, 
-              properties: {
-                category: { type: Type.STRING },
-                idea: { type: Type.STRING }
-              },
-              required: ["category", "idea"]
-            } 
-          },
-          summary: { type: Type.STRING },
-          classHealthScore: { type: Type.INTEGER }
-        },
-        required: ["weakTopics", "attendanceInsight", "teachingAdvice", "improvementIdeas", "summary", "classHealthScore"]
-      }
-    }
+  const response = await puter.ai.chat(prompt, {
+    model: 'gemini-3-flash-preview'
   });
 
-  return JSON.parse(response.text || "{}");
+  try {
+    return JSON.parse(response);
+  } catch (error) {
+    console.error("Failed to parse class report JSON:", error);
+    throw new Error("Invalid JSON response from AI");
+  }
 };
 
 /**
  * Creates a chat session for the teaching assistant widget.
+ * Since Puter.js doesn't have persistent chat sessions, we create a simple session
+ * that maintains conversation history and sends it with each request.
  */
 export const createAIChatSession = (context: {
   students: Student[];
   tests: CodingTest[];
   attendance: AttendanceDaily[];
 }) => {
-  return ai.chats.create({
-    model: 'gemini-3-flash-preview',
-    config: {
-      systemInstruction: `You are an AI Teaching Assistant for a Web Design & Development (WDD) course. 
-      Your goal is to help teachers analyze student performance and generate reports.
-      You have access to the following current class data:
-      - Students: ${JSON.stringify(context.students)}
-      - Test Results: ${JSON.stringify(context.tests)}
-      - Attendance: ${JSON.stringify(context.attendance)}
+  const systemPrompt = `You are an AI Teaching Assistant for a Web Design & Development (WDD) course.
+  Your goal is to help teachers analyze student performance and generate reports.
+  You have access to the following current class data:
+  - Students: ${JSON.stringify(context.students)}
+  - Test Results: ${JSON.stringify(context.tests)}
+  - Attendance: ${JSON.stringify(context.attendance)}
 
-      When a teacher asks a question, use this data to provide specific, evidence-based insights.
-      Always respond in Myanmar language unless technical terms are better in English.
-      Be professional, encouraging, and data-driven.
-      If asked for a report on a specific student, summarize their tests and attendance trends clearly.`,
-    },
-  });
+  When a teacher asks a question, use this data to provide specific, evidence-based insights.
+  Always respond in Myanmar language unless technical terms are better in English.
+  Be professional, encouraging, and data-driven.
+  If asked for a report on a specific student, summarize their tests and attendance trends clearly.`;
+
+  const chatHistory: Array<{role: 'user' | 'model', content: string}> = [];
+
+  return {
+    sendMessage: async (message: string) => {
+      // Add user message to history
+      chatHistory.push({ role: 'user', content: message });
+
+      // Create the full prompt with system instruction and conversation history
+      const fullPrompt = `${systemPrompt}
+
+Previous conversation:
+${chatHistory.slice(0, -1).map(msg => `${msg.role === 'user' ? 'Teacher' : 'Assistant'}: ${msg.content}`).join('\n')}
+
+Current question: ${message}
+
+Please provide a helpful response based on the class data above.`;
+
+      try {
+        const response = await puter.ai.chat(fullPrompt, {
+          model: 'gemini-3-flash-preview'
+        });
+
+        // Add AI response to history
+        chatHistory.push({ role: 'model', content: response });
+
+        return response;
+      } catch (error) {
+        console.error("Chat error:", error);
+        throw new Error("Failed to get AI response");
+      }
+    }
+  };
 };
