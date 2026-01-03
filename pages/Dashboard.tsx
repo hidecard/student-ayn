@@ -146,7 +146,7 @@ const Dashboard: React.FC = () => {
                   <AlertTriangle size={16} /> Weak Topics
                 </h5>
                 <ul className="space-y-2">
-                  {classReport.weakTopics.map((topic: string, i: number) => (
+                  {classReport.weakTopics?.map((topic: string, i: number) => (
                     <li key={i} className="flex items-center gap-2 text-sm text-indigo-50">
                       <ChevronRight size={14} className="text-indigo-400" /> {topic}
                     </li>
@@ -166,7 +166,7 @@ const Dashboard: React.FC = () => {
                   <Lightbulb size={16} /> Teaching Advice
                 </h5>
                 <ul className="space-y-2">
-                  {classReport.teachingAdvice.map((adv: string, i: number) => (
+                  {classReport.teachingAdvice?.map((adv: string, i: number) => (
                     <li key={i} className="flex items-center gap-2 text-sm text-indigo-50 font-medium">
                       <div className="w-1.5 h-1.5 bg-amber-400 rounded-full"></div> {adv}
                     </li>

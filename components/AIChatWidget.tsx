@@ -34,6 +34,9 @@ const AIChatWidget: React.FC = () => {
 
   // Simple Markdown-lite formatter
   const formatMessage = (text: string) => {
+    if (typeof text !== 'string') {
+      text = String(text);
+    }
     // Bold: **text**
     let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     // Underline: __text__
