@@ -12,11 +12,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
 
   const menuItems = [
-    { name: 'Dashboard (ပင်မစာမျက်နှာ)', path: '/', icon: LayoutDashboard },
-    { name: 'Students (ကျောင်းသားများ)', path: '/students', icon: Users },
-    { name: 'AI Reports (အစီရင်ခံစာများ)', path: '/reports', icon: BrainCircuit },
-    { name: 'Tests (ကုဒ်ဖြေဆိုမှုများ)', path: '/tests', icon: ClipboardList },
-    { name: 'Data Sync (ဒေတာရယူရန်)', path: '/sync', icon: Database },
+    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { name: 'Students', path: '/students', icon: Users },
+    { name: 'AI Reports', path: '/reports', icon: BrainCircuit },
+    { name: 'Coding Test', path: '/tests', icon: ClipboardList },
+    { name: 'Data Sync', path: '/sync', icon: Database },
   ];
 
   return (
@@ -25,7 +25,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <aside className="w-64 bg-slate-900 text-white flex-shrink-0 flex flex-col hidden md:flex">
         <div className="p-6 flex items-center gap-3 border-b border-slate-800">
           <GraduationCap className="text-blue-400 w-8 h-8" />
-          <h1 className="font-bold text-lg leading-tight">AI Coding Intelligence</h1>
+          <h1 className="font-bold text-lg leading-tight">Student Analytics</h1>
         </div>
         
         <nav className="flex-1 p-4 space-y-2 mt-4">
